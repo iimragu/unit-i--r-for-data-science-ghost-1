@@ -1,0 +1,83 @@
+---
+title: "R for Data Science-Assignment-5"
+author: "RAGU J"
+date: "2022-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(lubridate)
+library(nycflights13)
+```
+##Question-1
+
+Construct regular expressions to match words that: 
+
+a. Start and end with the same character. 
+
+```{r}
+str_view(words, "(.).*\\1$", match = TRUE)
+```
+b. Contain a repeated pair of letters (e.g., “church” contains “ch” repeated twice). 
+
+```{r}
+str_view(words, "(..).*\\1", match = TRUE)
+```
+
+c. Contain one letter repeated in at least three places (e.g., “eleven” contains three “e”s).
+
+```{r}
+str_view(words, "(.).*\\1.*\\1", match = FALSE)
+```
+
+
+##Question-2
+How would you match the sequence "'\?
+##Answer
+
+```{r}
+x <- "a \"'\\b"
+writeLines(x)
+
+str_view(x, "\"'\\\\")
+```
+
+##Question-3
+Use the appropriate lubridate function to parse each of the following dates: 
+d1 <- "January 1, 2010"
+ d2 <- "2015-Mar-07"
+ d3 <- "06-Jun-2017" 
+d4 <- c("August 19 (2015)", "July 1 (2015)") 
+d5 <- "12/30/14" # Dec 30, 2014
+
+```{r}
+d1 <- "January 1, 2010"
+ d2 <- "2015-Mar-07"
+ d3 <- "06-Jun-2017" 
+d4 <- c("August 19 (2015)", "July 1 (2015)") 
+d5 <- "12/30/14" 
+
+#ANSWER
+mdy(d1)
+ymd(d2)
+dmy(d3)
+mdy(d4)
+mdy(d5)
+```
+
+##Question-4
+What happens if you parse a string that contains invalid dates? 
+ymd(c("2010-10-10", "bananas"))
+
+##Answer
+  It shows a warning message and print "NA" instead of "bananas"(Warning:  1 failed to parse.[1] "2010-10-10" NA     )
+
+```{r}
+ymd(c("2010-10-10", "bananas"))
+```
+
+

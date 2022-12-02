@@ -1,0 +1,153 @@
+---
+title: "R For Data Science-Assignment-4"
+author: "RAGU J"
+date: "2022-11-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyr)
+library(tidyverse)
+library(nycflights13)
+```
+##Question-1
+Re-create the plot showing change in cases over time using table2 instead of table1. What do you need to do first?
+##Answer:
+First we need to "filter" the 'table' so that include the rows that representing the "cases" ofTB
+```{r}
+table2 %>%
+  filter(type == "cases") %>%
+  ggplot(aes(year, count)) +
+  geom_line(aes(group = country), colour = "grey50") +
+  geom_point(aes(colour = country)) +
+  scale_x_continuous(breaks = unique(table2$year)) +
+  ylab("cases")
+```
+
+
+##Question-2
+
+2.	 Why does this code fail?
+table4a %>% 
+  pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
+#> Error: Can't subset columns that don't exist.
+#> ✖ Locations 1999 and 2000 don't exist.
+#> ℹ There are only 3 columns.
+
+
+##Answer:
+The code fails because the column names 1999 and 2000 are not non-syntactic variable names.
+
+When selecting variables from a data frame, tidyverse functions will interpret numbers, like 1999 and 2000, as column numbers. In this case, pivot_longer() tries to select the 1999th and 2000th column of the data frame. To select the columns 1999 and 2000, the names must be surrounded in backticks (  `) or provided as strings.
+
+
+##Question-3
+
+3.	Compute the rate for table2, and table4a + table4b. You will need to perform four operations:
+•	Extract the number of TB cases per country per year.
+•	Extract the matching population per country per year.
+•	Divide cases by population, and multiply by 10000.
+•	Store back in the appropriate place.
+Which representation is easiest to work with? Which is hardest? Why gather() has a names_ptype argument, e.g. names_ptype = list(year = double()). What does it do
+##Answer:
+```{r}
+table2
+
+#Extract the number of TB cases per country per year
+
+table2_cases <- table2 %>%
+  filter(type == "cases")
+table2_cases
+#(Extract the matching population per country per year.)
+
+table2_population <- table2 %>%
+    filter(type == "population")
+table2_population
+
+table2_mod <- tibble(
+  country = table2_cases$country,
+  year = table2_cases$year,
+  cases = table2_cases$count,
+  population = table2_population$count
+  )
+table2_mod
+
+# Divide cases by population, and multiply by 10000.
+# Store back in the appropriate place.
+
+table2_mod <- table2_mod %>%
+    mutate(rate = (cases / population) * 10000)
+table2_mod
+
+
+table4c <-
+  tibble(
+    country = table4a$country,
+    `1999` = table4a[["1999"]] / table4b[["1999"]] * 10000,
+    `2000` = table4a[["2000"]] / table4b[["2000"]] * 10000
+  )
+table4c
+
+```
+Neither table is particularly easy to work with. Since table2 has separate rows for cases and population we needed to generate a table with columns for cases and population where we could calculate cases per capital. table4a and table4b split the cases and population variables into different tables which made it easy to divide cases by population. However, we had to repeat this calculation for each row.
+
+The ideal format of a data frame to answer this question is one with columns country, year, cases, and population. Then problem could be answered with a single mutate() call.
+
+
+##Question-4
+a. Add a surrogate key to flights
+##Answer:
+
+```{r}
+flights %>%
+  arrange(year, month, day, sched_dep_time, carrier, flight) %>%
+  mutate(flight_id = row_number()) %>%
+  glimpse()
+
+```
+
+b. What does anti_join(flights, airports, by = c("dest" = "faa")) tell you?
+##Answer:
+The expression anti_join(flights, airports, by = c("dest" = "faa")) returns the flights that went to an airport that is not in the FAA list of destinations. Since the FAA list only contains domestic airports, these are likely foreign flights.
+```{r}
+anti_join(flights, airports, by = c("dest" = "faa"))
+```
+
+c. What does anti_join(airports, flights, by = c("faa" = "dest")) tell you?
+##Answer:
+The expression anti_join(airports, flights, by = c("faa" = "dest")) returns the US airports that were not the destination of any flight in the data.
+```{r}
+anti_join(airports, flights, by = c("faa" = "dest"))
+```
+
+
+##Question-5
+Perform the following
+a.	Compute the average delay by destination, then join on the air ports data frame so you can show the spatial distribution of delays.
+##Answer
+```{r}
+avg_dest_delays <-
+  flights %>%
+  group_by(dest) %>%
+    summarise(delay = mean(arr_delay, na.rm = TRUE)) %>%
+  inner_join(airports, by = c(dest = "faa"))
+
+avg_dest_delays%>%ggplot(aes(lon,lat,colour=delay))+geom_point() 
+
+```
+b.	Add the location of the origin and destination (i.e. the lat and lon) to flights.
+##Answer:
+```{r}
+ airport_loctaion<-airports%>%select(faa,lat,lon)
+flights%>%select(year:day,hour,origin,dest)%>%left_join(
+  airport_loctaion,by=c("origin"="faa"))%>%left_join(
+    airport_loctaion,by=c("dest"="faa"))
+```
+
+
+
+
+
