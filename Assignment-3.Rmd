@@ -1,0 +1,155 @@
+---
+title: "R For Data Science-Assignment-3"
+author: "RAGU J"
+date: "2022-11-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("tidyverse")
+library(tidyverse)
+```
+
+```{r}
+library(nycflights13)
+```
+
+
+```{r}
+```
+
+##Question-1
+A. Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviors cause you frustration?
+```{r}
+df <- data.frame(abc = 1, xyz = "a")
+df$x
+#> [1] "a"
+df[, "xyz"]
+#> [1] "a"
+df[, c("abc", "xyz")]
+#>   abc xyz
+
+```
+##Answer
+    When using the $ operator, data frames will select any column that begins with the first letter. So in the Given example, there is no column “x”, but because there is a column “xyz” - the data frame pulls the corresponding rows for that column. 
+   The frustration is because in some situations a data frame will returns a different thing like in the last two previous lines of code. Tibble will return the same thing, providing consistency.
+
+
+B.What option controls how many additional column names are printed at the footer of a tibble?
+##Answer
+
+   By default, information of all remaining columns are printed at the footer. To limit the number of additional column information, we can use the argument "n_extra." 
+##For exampe:
+```{r}
+print(nycflights13::flights, n_extra = 2)
+```
+
+##Question-2:
+Generate the correct format string to parse each of the following dates and times:
+d1 <- "January 1, 2010"
+d2 <- "2015-Mar-07"
+d3 <- "06-Jun-2017"
+d4 <- c("August 19 (2015)", "July 1 (2015)")
+d5 <- "12/30/14" # Dec 30, 2014
+t1 <- "1705"
+t2 <- "11:15:10.12 PM"
+##Answer
+```{r}
+parse_date(d1, "%B %d, %Y")
+
+parse_date(d2, "%Y-%b-%d")
+
+parse_date(d3, "%d-%b-%Y")
+
+parse_date(d4, "%B %d (%Y")
+           
+parse_date(d5, "%m/%d/%y")
+
+parse_time(t1, "%H%M")
+
+
+```
+
+
+
+##Question-3:
+Practice referring to non-syntactic names in the following data frame by: 
+```{r}
+annoying <- tibble( 
+`1` = 1:10, 
+`2` = `1` * 2 + rnorm(length(`1`)) )
+
+```
+
+a. Extracting the variable called 1. 
+##Answer
+```{r}
+annoying[["1"]]
+##or
+annoying$`1`
+```
+b. Plotting a scatterplot of 1 versus 2.
+##Answer
+```{r}
+ggplot(annoying, aes(x = `1`, y = `2`)) +
+  geom_point()
+```
+c. Creating a new column called 3, which is 2 divided by 1. 
+##Answer
+```{r}
+annoying[["3"]] <- annoying[["2"]] / annoying[["1"]]
+
+annoying$`3`
+```
+d. Renaming the columns to one, two, and three: 
+##Answer
+```{r}
+annoying <- rename(annoying, one = `1`, two = `2`, three = `3`)
+glimpse(annoying)
+
+```
+
+
+
+4.	Identify what is wrong with each of the following inline CSV files. 
+What happens when you run the code? 
+read_csv("a,b\n1,2,3\n4,5,6") 
+read_csv("a,b,c\n1,2\n1,2,3,4")
+read_csv("a,b\n\"1") 
+read_csv("a,b\n1,2\na,b")
+read_csv("a;b\n1;3")
+##Answers
+```{r}
+read_csv("a,b\n1,2,3\n4,5,6") 
+```
+Only two columns are specified in the header "a" and "b", but the rows have three columns, so the last column is dropped.
+
+```{r}
+read_csv("a,b,c\n1,2\n1,2,3,4")
+```
+The numbers of columns in the data do not match the number of columns in the header
+
+In row one, there are only two values, so column "c" is set to missing.
+
+In row two, there is an extra value, and that value is dropped.
+```{r}
+read_csv("a,b\n\"1") 
+```
+
+The opening quote " "1 " is dropped because it is not closed, and "a" is treated as an integer.
+```{r}
+read_csv("a,b\n1,2\na,b")
+```
+
+Both "a" and "b" are treated as character vectors since they contain non-numeric strings.
+
+This may have been intentional, or the author may have intended the values of the columns to be "1,2" and "a,b".
+
+```{r}
+read_csv("a;b\n1;3")
+```
+The values are separated by ";" rather than ",".
