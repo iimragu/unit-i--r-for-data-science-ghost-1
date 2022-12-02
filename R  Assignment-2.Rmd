@@ -1,0 +1,118 @@
+---
+title: "Assignment-II"
+author: "RAGU J"
+date: "2022-11-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r}
+install.packages("nycflights13")
+install.packages("tidyverse")
+library(nycflights13)
+library(tidyverse)
+
+```
+1.	Sort flights to find the fastest flights
+
+Answer:
+```{r}
+arrange(flights,air_time)
+```
+
+2.	Compare dep_time, sched_dep_time, and dep_delay. How would you expect those three numbers to be related?
+
+
+Answer:
+ I would expect that is "dep_delay" is equal to the difference between "sched_dep_time" and "dep_time"
+
+
+```{r}
+select(flights,dep_time,sched_dep_time,dep_delay)
+```
+
+3.	Brainstorm at least 5 different ways to assess the typical delay characteristics of a group of flights. Consider the following scenarios:
+
+
+  a.	A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
+
+  b.	A flight is always 10 minutes late.
+
+
+  c.	A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
+
+  d.	99% of the time a flight is on time. 1% of the time it’s 2 hours late
+Ans:
+```{r}
+
+not_cancelled <- flights %>%
+  filter(!is.na(air_time))
+###Arrival Time is More Important so sort that first
+not_cancelled %>%
+  group_by(tailnum) %>%
+  mutate(
+    count = n(),
+    median_arr_delay = median(arr_delay),
+    median_dep_delay = median(dep_delay)
+  ) %>%
+  filter(count > 30) %>%
+  arrange(median_arr_delay, median_dep_delay)
+
+
+###More than 10 mins Late
+not_cancelled %>%
+  group_by(tailnum, origin, dest) %>%
+  summarise(
+    count = n(),
+    arr_delay_10_c = sum(arr_delay > 10),  
+    arr_delay_10_p = mean(arr_delay > 10),  
+    dep_delay_10_c = sum(dep_delay > 10),
+    dep_delay_10_p = mean(dep_delay > 10)  
+    ) %>%
+  filter(count > 20) %>%
+  arrange(desc(arr_delay_10_p))
+
+
+### Best flights under 30 mins early or late criteria sorted 
+not_cancelled %>%
+  group_by(tailnum) %>%
+  mutate(
+    count = n(),
+    arr_30_early = mean(arr_delay < -30),
+    dep_30_early = mean(dep_delay < -30),
+    arr_30_late  = mean(arr_delay > 30),
+    dep_30_late = mean(dep_delay > 30)
+  ) %>%
+  filter(count > 20) %>%
+  arrange(desc(arr_30_early), desc(dep_30_early), arr_30_late, dep_30_late) %>%
+  select(dest)
+```
+      According to the scenarios and coding ,departure delay is important
+
+
+
+4.	Which plane (tailnum) has the worst on-time record?
+Answer:
+```{r}
+select(flights,desc(arr_delay),desc(dep_delay))
+```
+
+
+
+5.	Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
+
+Answer:
+```{r}
+select(flights,dep_time,dep_delay,arr_time,arr_delay)
+select(flights,4,6,7,9)
+select(flights,starts_with("dep_"),starts_with("arr_"))
+select(flights, "dep_time", "dep_delay", "arr_time", "arr_delay")
+
+
+
+```
+
